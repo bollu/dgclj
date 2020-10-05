@@ -1,0 +1,2 @@
+- https://clojure.org/guides/deps_and_cli
+- https://github.com/Olical/conjure/wiki/Quick-start:-Clojure
