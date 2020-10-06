@@ -1,27 +1,40 @@
 (ns dg)
 
 
-(defn op* [x y] (list '* x y))
-(defn op+ [x y] (list '+ x y))
-(defn op- [x y] (list '- x y))
 
-(op* (op+ 'p 1) (op- 'q 2))
+(defn third [l] (nth l 2))
 
-(defn symbolic-derivative [f v]
+(defn sym-simpl [f]
+  (if (or (symbol? f) (number? f)) f ; then
+    (let [op (first f) ; else
+            x (second f)
+            y (third f)]
+        (if 
+          (and (number? x) (number? y))
+          (eval f) ; then
+          f))))
+
+(defn sym* [x y] (sym-simpl (list '* x y)))
+(defn sym+ [x y] (sym-simpl (list '+ x y)))
+(defn sym- [x y] (sym-simpl (list '- x y)))
+
+
+
+(defn sym-der [f v]
   (cond
     (= f v) 1
     (symbol? f) 0
     ;; from now on, f must be a list.
-    (= (first f) '+) (op+ (symbolic-derivative (nth f 1) v)
-                          (symbolic-derivative (nth f 2) v))
-    (= (first f) '*) (op+ (op* (nth f 2) (symbolic-derivative (nth f 1) v))
-                          (op* (nth f 1) (symbolic-derivative (nth f 2) v)))
+    (= (first f) '+) (sym+ (sym-der (nth f 1) v)
+                           (sym-der (nth f 2) v))
+    (= (first f) '*) (sym+ (sym* (nth f 2) (sym-der (nth f 1) v))
+                           (sym* (nth f 1) (sym-der (nth f 2) v)))
     :else 0))
 
-(symbolic-derivative 'x 'x)
-(symbolic-derivative 'x 'y)
-
-(op* 1 2)
+(sym-simpl 'x)
+(sym-simpl 1)
+(sym-der 'x 'x)
+(sym-der 'x 'y)
 
 ;; R -> R^3
 (defn c [t] (list t (* t t) (* t t t)))
